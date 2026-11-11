@@ -1,5 +1,6 @@
 ﻿using AuthUserAPI.Models;
 using AuthUserAPI.Models.DTOs;
+using AuthUserAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,21 +12,26 @@ namespace AuthUserAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AuthuserContext _context;
+        private readonly PasswordHasher _password;
 
-        public UsersController(AuthuserContext context)
+        public UsersController(AuthuserContext context, PasswordHasher password)
         {
             _context = context;
+            _password = password;
         }
 
         [HttpPost("newUser")]
         public async Task<IActionResult> NewUser([FromBody] NewUserDto newUserDto)
         {
+            var (pass, salt) = _password.HashPassword(newUserDto.Password);
+
             var user = new User
             {
                 Id = Guid.NewGuid(),
                 Name = newUserDto.Name,
                 Email = newUserDto.Email,
-                Password = newUserDto.Password,
+                Password = pass,
+                Salt = salt
             };
 
             if (user is not null)
@@ -104,6 +110,28 @@ namespace AuthUserAPI.Controllers
 
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+        {
+            var login = await _context.Users
+                .SingleOrDefaultAsync(u => u.Name == userLoginDto.Name);
+
+            if (login is null)
+            {
+                return StatusCode(400, new { message = "Nincs találat"});
+            }
+
+            var isValid = _password.Verify(userLoginDto.Password,login.Password,login.Salt);
+
+            if (isValid)
+            {
+                return StatusCode(200, new { message = "Sikeres bejelentkezés", result = login});
+
+            }
+
+            return StatusCode(401, new { message = "Hibás név vagy jelszó"});
+
+        }
 
 
     }
