@@ -1,8 +1,12 @@
 
 using AuthUserAPI.Models;
 using AuthUserAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens.Experimental;
 using Scalar.AspNetCore;
+using System.Text;
 
 namespace AuthUserAPI
 {
@@ -17,6 +21,32 @@ namespace AuthUserAPI
             );
 
             builder.Services.AddScoped<PasswordHasher>();
+            builder.Services.AddScoped<GenerateToken>();
+
+            var secret = "ide-jon-az-a-kulcs-amivel-azonositjuk-az-issuer-es-az-audience";
+            var issuer = "auth-api";
+            var audience = "auth-client";
+
+            var key = Encoding.ASCII.GetBytes(secret);
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+            }).AddJwtBearer(jwt => {
+                jwt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    ValidateAudience = true
+                };
+            });
+
+
 
             // Add services to the container.
 
@@ -35,6 +65,7 @@ namespace AuthUserAPI
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

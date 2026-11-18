@@ -43,6 +43,7 @@ namespace AuthUserAPI.Controllers
 
                 return StatusCode(201, new { message = "Sikeres összerendelés" });
             }
+
             catch (Exception exception)
             {
 
@@ -69,6 +70,7 @@ namespace AuthUserAPI.Controllers
                 await _context.SaveChangesAsync();
                 return StatusCode(200, new { message = "Sikeres törlés" });
             }
+
             catch (Exception exception)
             {
 
@@ -80,27 +82,45 @@ namespace AuthUserAPI.Controllers
         [HttpGet("allUserAllRoles")]
         public async Task<IActionResult> AllUserAllRoles()
         {
-            var users = await _context.Users.Include(u => u.Roles).Select(u => new {Users = u.Name, UserRoles = u.Roles}).ToListAsync();
+            try
+            {
+                var users = await _context.Users.Include(u => u.Roles).Select(u => new {Users = u.Name, UserRoles = u.Roles}).ToListAsync();
 
-            return Ok(users);
+                return Ok(users);
+
+            }
+            catch (Exception exception)
+            {
+
+                return BadRequest(exception.Message);
+            }
         }
 
 
         [HttpGet("allUserAllRolesById")]
         public async Task<IActionResult> AllUserAllRolesById([FromQuery] Guid id)
         {
-            var users = await _context.Users.
-                Select(u => new
-                {
-                    u.Id,
-                    u.Name,
-                    UserRoles = u.Roles.Select(r => r.Name).ToList()
-                }
-                ).
-                SingleOrDefaultAsync(u => u.Id == id);
+            try
+            {
+                var users = await _context.Users.
+                    Select(u => new
+                    {
+                        u.Id,
+                        u.Name,
+                        UserRoles = u.Roles.Select(r => r.Name).ToList()
+                    }
+                    ).
+                    SingleOrDefaultAsync(u => u.Id == id);
                 
 
-            return Ok(users);
+                return Ok(users);
+
+            }
+            catch (Exception exception)
+            {
+
+                return BadRequest(exception.Message);
+            }
         }
 
 
