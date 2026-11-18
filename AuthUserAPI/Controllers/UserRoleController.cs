@@ -53,8 +53,8 @@ namespace AuthUserAPI.Controllers
         [HttpDelete("removerole")]
         public async Task<IActionResult> RemoveRole([FromBody] DeleteUserRoleDto deleteUserRoleDto)
         {
+         
             
-
             try
             {
                 var user = await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == deleteUserRoleDto.UserId);

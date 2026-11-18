@@ -31,7 +31,8 @@ namespace AuthUserAPI.Controllers
                 Name = newUserDto.Name,
                 Email = newUserDto.Email,
                 Password = pass,
-                Salt = salt
+                Salt = salt,
+                RegTime = DateTime.Now
             };
 
             if (user is not null)
@@ -126,7 +127,6 @@ namespace AuthUserAPI.Controllers
             if (isValid)
             {
                 return StatusCode(200, new { message = "Sikeres bejelentkezés", result = login});
-
             }
 
             return StatusCode(401, new { message = "Hibás név vagy jelszó"});
